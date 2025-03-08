@@ -1,7 +1,5 @@
-
-
 // src/router/index.js
-import { createRouter, createWebHistory } from 'vue-router';
+import { createRouter, createWebHashHistory } from 'vue-router';
 import HomeView from '../views/HomeView.vue';
 import ConfiguratorView from '../views/ConfiguratorView.vue';
 import SummaryView from '../views/SummaryView.vue';
@@ -25,7 +23,8 @@ const routes = [
 ];
 
 const router = createRouter({
-  history: createWebHistory(process.env.BASE_URL),
+  // Changed from createWebHistory to createWebHashHistory for GitHub Pages compatibility
+  history: createWebHashHistory(process.env.BASE_URL),
   routes
 });
 
