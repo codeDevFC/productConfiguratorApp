@@ -1,5 +1,3 @@
-
-
 <!-- src/components/configurator/ColorSelector.vue -->
 <template>
   <div class="color-selector">
@@ -12,7 +10,15 @@
         :class="['color-option', { 'selected': isSelected(color) }]"
         @click="selectColor(color)"
       >
-        <div class="color-preview" :style="{ backgroundImage: `url(${color.image})` }"></div>
+        <div class="color-preview" :style="getColorStyle(color)">
+          <img 
+            v-if="color.image" 
+            :src="color.image" 
+            :alt="color.name"
+            @error="(e) => handleImageError(e, color)" 
+            class="color-image"
+          />
+        </div>
         <div class="color-info">
           <span class="color-name">{{ color.name }}</span>
           <span v-if="color.price > 0" class="color-price">+${{ color.price.toFixed(2) }}</span>
@@ -40,13 +46,57 @@ export default {
     };
     
     const selectColor = (color) => {
-      store.commit('configuration/SELECT_COLOR', color);
+      store.dispatch('configuration/selectColor', color);
+    };
+    
+    const getColorStyle = (color) => {
+      // Default style with background color based on color id
+      const colorMap = {
+        'black': '#333333',
+        'blue': '#4a6cf7',
+        'red': '#e53935',
+        'white': '#f5f5f7',
+        'walnut': '#5d4037'
+      };
+      
+      return {
+        backgroundColor: colorMap[color.id] || '#cccccc'
+      };
+    };
+    
+    const handleImageError = (event, color) => {
+      // Remove the broken image
+      event.target.style.display = 'none';
+      
+      // Get the parent element (color-preview div)
+      const parent = event.target.parentNode;
+      
+      // Set background color based on color id
+      const colorMap = {
+        'black': '#333333',
+        'blue': '#4a6cf7',
+        'red': '#e53935',
+        'white': '#f5f5f7',
+        'walnut': '#5d4037'
+      };
+      
+      parent.style.backgroundColor = colorMap[color.id] || '#cccccc';
+      
+      // Add color name as text
+      const textNode = document.createElement('span');
+      textNode.textContent = color.name;
+      textNode.style.color = ['black', 'walnut'].includes(color.id) ? '#ffffff' : '#333333';
+      textNode.style.fontWeight = 'bold';
+      textNode.style.fontSize = '12px';
+      parent.appendChild(textNode);
     };
     
     return {
       colors,
       isSelected,
-      selectColor
+      selectColor,
+      getColorStyle,
+      handleImageError
     };
   }
 }
@@ -94,6 +144,16 @@ export default {
   background-repeat: no-repeat;
   margin-bottom: 10px;
   border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.color-image {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
 }
 
 .color-info {

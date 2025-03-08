@@ -1,5 +1,4 @@
 
-
 <!-- src/views/SummaryView.vue -->
 <template>
   <div class="summary">
@@ -13,30 +12,35 @@
         <img 
           v-if="configuration.color"
           :src="configuration.color.image" 
-          :alt="selectedProduct.name" 
+          :alt="selectedProduct?.name" 
           class="product-image"
+          @error="handleImageError"
         />
         <img 
           v-else-if="selectedProduct"
           :src="selectedProduct.image" 
           :alt="selectedProduct.name" 
           class="product-image"
+          @error="handleImageError"
         />
+        <div v-else class="placeholder-image">
+          No product selected
+        </div>
       </div>
       
-      <div class="configuration-details">
+      <div class="configuration-details" v-if="selectedProduct">
         <h2>{{ selectedProduct.name }}</h2>
         <p>{{ selectedProduct.description }}</p>
         
         <div class="details-section">
           <h3>Configuration Details</h3>
           
-          <div class="detail-item">
+          <div class="detail-item" v-if="configuration.color">
             <span class="detail-label">Color:</span>
             <span class="detail-value">{{ configuration.color.name }}</span>
           </div>
           
-          <div class="detail-item">
+          <div class="detail-item" v-if="configuration.material">
             <span class="detail-label">Material:</span>
             <span class="detail-value">{{ configuration.material.name }}</span>
           </div>
@@ -90,6 +94,15 @@
           </base-button>
         </div>
       </div>
+      
+      <!-- Show this if no product is selected -->
+      <div class="no-configuration" v-else>
+        <h2>No Configuration Selected</h2>
+        <p>Please go back to the configurator to create a product configuration.</p>
+        <base-button @click="modifyConfiguration">
+          Go to Configurator
+        </base-button>
+      </div>
     </div>
   </div>
 </template>
@@ -114,31 +127,38 @@ export default {
     const selectedProduct = computed(() => store.state.configuration.selectedProduct);
     const configuration = computed(() => store.state.configuration.configuration);
     const shareableUrl = computed(() => {
-      const baseUrl = window.location.origin;
+      const baseUrl = window.location.origin + window.location.pathname;
       const params = new URLSearchParams();
       
-      params.append('product', configuration.value.productId);
-      if (configuration.value.color) {
-        params.append('color', configuration.value.color.id);
-      }
-      if (configuration.value.material) {
-        params.append('material', configuration.value.material.id);
-      }
-      if (configuration.value.features.length > 0) {
-        params.append('features', configuration.value.features.map(f => f.id).join(','));
+      if (configuration.value?.productId) {
+        params.append('product', configuration.value.productId);
+        
+        if (configuration.value.color) {
+          params.append('color', configuration.value.color.id);
+        }
+        
+        if (configuration.value.material) {
+          params.append('material', configuration.value.material.id);
+        }
+        
+        if (configuration.value.features && configuration.value.features.length > 0) {
+          params.append('features', configuration.value.features.map(f => f.id).join(','));
+        }
       }
       
-      return `${baseUrl}/configurator?${params.toString()}`;
+      return `${baseUrl}#/configurator?${params.toString()}`;
     });
     
     const copyShareUrl = () => {
-      shareInput.value.select();
-      document.execCommand('copy');
-      copyStatus.value = 'Copied!';
-      
-      setTimeout(() => {
-        copyStatus.value = 'Copy';
-      }, 2000);
+      if (shareInput.value) {
+        shareInput.value.select();
+        document.execCommand('copy');
+        copyStatus.value = 'Copied!';
+        
+        setTimeout(() => {
+          copyStatus.value = 'Copy';
+        }, 2000);
+      }
     };
     
     const modifyConfiguration = () => {
@@ -150,6 +170,56 @@ export default {
       alert('Proceeding to checkout... (This would redirect to a checkout page in a real application)');
     };
     
+    const handleImageError = (event) => {
+      // Create a colored placeholder based on product type
+      const productId = selectedProduct.value?.id || 'default';
+      const colorName = configuration.value?.color?.name || 'Default';
+      
+      // Set a colored background
+      event.target.style.display = 'none';
+      const container = event.target.parentNode;
+      container.style.backgroundColor = '#f0f0f0';
+      container.style.display = 'flex';
+      container.style.flexDirection = 'column';
+      container.style.alignItems = 'center';
+      container.style.justifyContent = 'center';
+      container.style.padding = '20px';
+      
+      // Create product name element
+      const productNameEl = document.createElement('div');
+      productNameEl.textContent = selectedProduct.value?.name || 'Product';
+      productNameEl.style.fontWeight = 'bold';
+      productNameEl.style.fontSize = '20px';
+      productNameEl.style.marginBottom = '10px';
+      container.appendChild(productNameEl);
+      
+      // Create color name element
+      const colorNameEl = document.createElement('div');
+      colorNameEl.textContent = `Color: ${colorName}`;
+      colorNameEl.style.fontSize = '16px';
+      container.appendChild(colorNameEl);
+      
+      // Create a colored swatch to represent the color
+      if (configuration.value?.color) {
+        const colorMap = {
+          'black': '#333333',
+          'blue': '#4a6cf7',
+          'red': '#e53935',
+          'white': '#f5f5f7',
+          'walnut': '#5d4037'
+        };
+        
+        const colorSwatch = document.createElement('div');
+        colorSwatch.style.width = '50px';
+        colorSwatch.style.height = '50px';
+        colorSwatch.style.backgroundColor = colorMap[configuration.value.color.id] || '#cccccc';
+        colorSwatch.style.borderRadius = '50%';
+        colorSwatch.style.marginTop = '15px';
+        colorSwatch.style.border = '2px solid #ddd';
+        container.appendChild(colorSwatch);
+      }
+    };
+    
     return {
       selectedProduct,
       configuration,
@@ -158,7 +228,8 @@ export default {
       copyStatus,
       copyShareUrl,
       modifyConfiguration,
-      checkout
+      checkout,
+      handleImageError
     };
   }
 }
@@ -200,6 +271,7 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
+  min-height: 400px;
 }
 
 .product-image {
@@ -208,10 +280,37 @@ export default {
   object-fit: contain;
 }
 
+.placeholder-image {
+  color: #999;
+  font-size: 18px;
+  text-align: center;
+}
+
 .configuration-details {
   display: flex;
   flex-direction: column;
   gap: 20px;
+}
+
+.no-configuration {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  background-color: #f5f5f7;
+  border-radius: 8px;
+  padding: 40px;
+  grid-column: span 2;
+}
+
+.no-configuration h2 {
+  margin-bottom: 15px;
+}
+
+.no-configuration p {
+  margin-bottom: 20px;
+  color: #666;
 }
 
 .configuration-details h2 {

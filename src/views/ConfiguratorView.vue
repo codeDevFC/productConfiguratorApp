@@ -1,4 +1,3 @@
-
 <!-- src/views/ConfiguratorView.vue -->
 <template>
   <div class="configurator">
@@ -33,7 +32,14 @@
             :class="['product-card', { 'selected': isProductSelected(product) }]"
             @click="selectProduct(product)"
           >
-            <img :src="product.image" :alt="product.name" class="product-image">
+            <div class="product-image-container">
+              <img 
+                :src="product.image" 
+                :alt="product.name" 
+                class="product-image"
+                @error="(e) => handleProductImageError(e, product)"
+              >
+            </div>
             <h3>{{ product.name }}</h3>
             <p>{{ product.description }}</p>
             <p class="product-price">${{ product.basePrice.toFixed(2) }}</p>
@@ -80,7 +86,6 @@
   </div>
 </template>
 
-
 <script>
 import { computed } from 'vue';
 import { useStore } from 'vuex';
@@ -105,7 +110,7 @@ export default {
     
     const currentStep = computed(() => store.state.configuration.currentStep);
     const totalSteps = computed(() => store.state.configuration.totalSteps);
-    const progress = computed(() => store.getters['configuration/currentStepProgress']);
+    const progress = computed(() => (currentStep.value / totalSteps.value) * 100);
     const selectedProductId = computed(() => store.state.configuration.configuration.productId);
     
     const isProductSelected = (product) => {
@@ -123,6 +128,28 @@ export default {
       }
     };
     
+    const handleProductImageError = (event, product) => {
+      // Remove the broken image
+      event.target.style.display = 'none';
+      
+      // Get the parent container
+      const container = event.target.parentNode;
+      
+      // Create a colored placeholder with product name
+      container.style.backgroundColor = '#f0f0f0';
+      container.style.display = 'flex';
+      container.style.alignItems = 'center';
+      container.style.justifyContent = 'center';
+      
+      // Add product name as text
+      const textNode = document.createElement('div');
+      textNode.textContent = product.name;
+      textNode.style.fontWeight = 'bold';
+      textNode.style.color = '#666';
+      textNode.style.textAlign = 'center';
+      container.appendChild(textNode);
+    };
+    
     return {
       currentStep,
       totalSteps,
@@ -130,7 +157,8 @@ export default {
       products,
       isProductSelected,
       selectProduct,
-      goToStep
+      goToStep,
+      handleProductImageError
     };
   }
 }
@@ -219,11 +247,19 @@ export default {
   background-color: rgba(74, 108, 247, 0.05);
 }
 
-.product-image {
+.product-image-container {
   width: 100%;
   height: 200px;
-  object-fit: contain;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   margin-bottom: 15px;
+}
+
+.product-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 
 .product-price {

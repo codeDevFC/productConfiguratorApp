@@ -1,5 +1,4 @@
 
-
 <!-- src/components/configurator/FeatureSelector.vue -->
 <template>
   <div class="feature-selector">
@@ -52,7 +51,7 @@ export default {
     };
     
     const toggleFeature = (feature) => {
-      store.commit('configuration/TOGGLE_FEATURE', feature);
+      store.dispatch('configuration/toggleFeature', feature);
     };
     
     const getFeatureDescription = (id) => {
@@ -60,7 +59,11 @@ export default {
         'armrests': 'Adjustable armrests for optimal ergonomics and comfort.',
         'headrest': 'Supportive headrest for neck and upper back comfort.',
         'lumbar': 'Adjustable lumbar support for better posture and back health.',
-        'wheels': 'Premium wheels for smooth movement on any surface.'
+        'wheels': 'Premium wheels for smooth movement on any surface.',
+        'memory': 'Memory presets to save your preferred height settings.',
+        'drawer': 'Convenient drawer for storing office supplies and accessories.',
+        'wireless': 'Built-in wireless charger for your smartphone and devices.',
+        'cable': 'Integrated cable management system to keep your workspace tidy.'
       };
       
       return descriptions[id] || 'Enhance your product with this premium feature.';

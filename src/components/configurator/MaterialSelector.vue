@@ -1,5 +1,4 @@
 
-
 <!-- src/components/configurator/MaterialSelector.vue -->
 <template>
   <div class="material-selector">
@@ -42,14 +41,17 @@ export default {
     };
     
     const selectMaterial = (material) => {
-      store.commit('configuration/SELECT_MATERIAL', material);
+      store.dispatch('configuration/selectMaterial', material);
     };
     
     const getMaterialDescription = (id) => {
       const descriptions = {
         'fabric': 'Soft and breathable fabric for everyday comfort.',
         'leather': 'Premium leather for a luxurious feel and durability.',
-        'mesh': 'Breathable mesh material ideal for long-term use and ventilation.'
+        'mesh': 'Breathable mesh material ideal for long-term use and ventilation.',
+        'laminate': 'Durable laminate surface that resists scratches and stains.',
+        'bamboo': 'Sustainable bamboo material with natural beauty and strength.',
+        'hardwood': 'Premium hardwood for exceptional durability and classic appearance.'
       };
       
       return descriptions[id] || 'High-quality material for your product.';

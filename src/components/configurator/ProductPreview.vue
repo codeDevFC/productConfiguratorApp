@@ -1,6 +1,3 @@
-
-
-
 <!-- src/components/configurator/ProductPreview.vue -->
 <template>
   <div class="product-preview">
@@ -10,12 +7,14 @@
         :src="configuration.color.image" 
         :alt="selectedProduct.name" 
         class="product-image"
+        @error="handleImageError"
       />
       <img 
         v-else-if="selectedProduct"
         :src="selectedProduct.image" 
         :alt="selectedProduct.name" 
         class="product-image"
+        @error="handleImageError"
       />
       <div v-else class="placeholder">
         Select a product to preview
@@ -68,9 +67,44 @@ export default {
     const selectedProduct = computed(() => store.state.configuration.selectedProduct);
     const configuration = computed(() => store.state.configuration.configuration);
     
+    const handleImageError = (event) => {
+      // Replace with a colored background based on product
+      const productId = selectedProduct.value?.id || 'default';
+      const colorMap = {
+        'chair': '#4a6cf7',
+        'desk': '#5d4037',
+        'default': '#cccccc'
+      };
+      
+      // Create a data URL for a colored placeholder
+      const color = colorMap[productId];
+      const canvas = document.createElement('canvas');
+      canvas.width = 300;
+      canvas.height = 300;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = color;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      // Set the canvas data URL as the image source
+      event.target.src = canvas.toDataURL();
+      
+      // Add product name as text overlay
+      event.target.style.position = 'relative';
+      const textOverlay = document.createElement('div');
+      textOverlay.textContent = selectedProduct.value?.name || 'Product';
+      textOverlay.style.position = 'absolute';
+      textOverlay.style.top = '50%';
+      textOverlay.style.left = '50%';
+      textOverlay.style.transform = 'translate(-50%, -50%)';
+      textOverlay.style.color = '#ffffff';
+      textOverlay.style.fontWeight = 'bold';
+      event.target.parentNode.appendChild(textOverlay);
+    };
+    
     return {
       selectedProduct,
-      configuration
+      configuration,
+      handleImageError
     };
   }
 }

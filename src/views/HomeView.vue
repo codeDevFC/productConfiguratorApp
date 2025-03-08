@@ -1,5 +1,3 @@
-
-
 <!-- src/views/HomeView.vue -->
 <template>
   <div class="home">
@@ -28,6 +26,31 @@
         <p>Enhance your product with additional features</p>
       </div>
     </div>
+    
+    <div class="product-preview">
+      <h2>Featured Products</h2>
+      <div class="product-cards">
+        <div 
+          v-for="product in featuredProducts" 
+          :key="product.id"
+          class="product-card"
+          @click="configureProduct(product)"
+        >
+          <div class="product-image-container">
+            <img 
+              :src="product.image" 
+              :alt="product.name" 
+              class="product-image"
+              @error="(e) => handleImageError(e, product)"
+            >
+          </div>
+          <h3>{{ product.name }}</h3>
+          <p>{{ product.description }}</p>
+          <p class="product-price">${{ product.basePrice.toFixed(2) }}</p>
+          <button class="configure-button">Configure</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -35,6 +58,7 @@
 import { useRouter } from 'vue-router';
 import { useStore } from 'vuex';
 import BaseButton from '@/components/ui/BaseButton.vue';
+import { products } from '@/data/products';
 
 export default {
   name: 'HomeView',
@@ -45,13 +69,46 @@ export default {
     const router = useRouter();
     const store = useStore();
     
+    const featuredProducts = products.slice(0, 2); // Show first 2 products
+    
     const startConfiguring = () => {
       store.commit('configuration/RESET_CONFIGURATION');
       router.push('/configurator');
     };
     
+    const configureProduct = (product) => {
+      store.commit('configuration/RESET_CONFIGURATION');
+      store.commit('configuration/SELECT_PRODUCT', product);
+      router.push('/configurator');
+    };
+    
+    const handleImageError = (event, product) => {
+      // Remove the broken image
+      event.target.style.display = 'none';
+      
+      // Get the parent container
+      const container = event.target.parentNode;
+      
+      // Create a colored placeholder with product name
+      container.style.backgroundColor = '#f0f0f0';
+      container.style.display = 'flex';
+      container.style.alignItems = 'center';
+      container.style.justifyContent = 'center';
+      
+      // Add product name as text
+      const textNode = document.createElement('div');
+      textNode.textContent = product.name;
+      textNode.style.fontWeight = 'bold';
+      textNode.style.color = '#666';
+      textNode.style.textAlign = 'center';
+      container.appendChild(textNode);
+    };
+    
     return {
-      startConfiguring
+      featuredProducts,
+      startConfiguring,
+      configureProduct,
+      handleImageError
     };
   }
 }
@@ -89,6 +146,7 @@ export default {
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 30px;
   margin-top: 60px;
+  margin-bottom: 60px;
 }
 
 .feature {
@@ -116,5 +174,73 @@ export default {
 
 .feature p {
   color: #666;
+}
+
+.product-preview {
+  margin-top: 60px;
+}
+
+.product-preview h2 {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.product-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 30px;
+}
+
+.product-card {
+  border: 1px solid #eee;
+  border-radius: 8px;
+  padding: 20px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.product-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.product-image-container {
+  width: 100%;
+  height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 15px;
+}
+
+.product-image {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.product-price {
+  font-weight: 600;
+  font-size: 18px;
+  margin-top: 10px;
+  color: #4a6cf7;
+}
+
+.configure-button {
+  display: block;
+  width: 100%;
+  padding: 10px;
+  margin-top: 15px;
+  background-color: #4a6cf7;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.configure-button:hover {
+  background-color: #3a5bd9;
 }
 </style>
