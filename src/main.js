@@ -1,31 +1,30 @@
-
 // src/main.js
+
 import { createApp } from 'vue';
 import App from './App.vue';
 import router from './router';
 import store from './store';
 
-// Create the Vue application instance
 const app = createApp(App);
 
-// Use the router and store
-app.use(router);
-app.use(store);
-
-// Mount the app to the DOM
-app.mount('#app');
-
-// Optional: Register global components if needed
-// app.component('BaseButton', BaseButton);
-
-// Optional: Global error handler
+// Global error handler
 app.config.errorHandler = (err, vm, info) => {
   console.error('Global error:', err);
-  console.error('Vue instance:', vm);
-  console.error('Error info:', info);
+  
+  // Handle specific errors
+  if (err.message && err.message.includes("Cannot read properties of undefined (reading 'profile')")) {
+    console.log('Profile error detected, setting default profile');
+    
+    // Try to set a default profile if that's the issue
+    if (store.state.configuration && !store.state.configuration.profile) {
+      store.state.configuration.profile = {
+        name: 'Guest',
+        preferences: {}
+      };
+    }
+  }
 };
 
-// Optional: Performance tracking in development mode
-if (process.env.NODE_ENV === 'development') {
-  app.config.performance = true;
-}
+app.use(router);
+app.use(store);
+app.mount('#app');
