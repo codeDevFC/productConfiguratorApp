@@ -1,108 +1,105 @@
-
 <!-- src/views/SummaryView.vue -->
 <template>
   <div class="summary">
-    <div class="summary-header">
-      <h1>Configuration Summary</h1>
-      <p>Your custom product is ready!</p>
-    </div>
-    
-    <div class="summary-content">
-      <div class="product-showcase">
-        <img 
-          v-if="configuration.color"
-          :src="configuration.color.image" 
-          :alt="selectedProduct?.name" 
-          class="product-image"
-          @error="handleImageError"
-        />
-        <img 
-          v-else-if="selectedProduct"
-          :src="selectedProduct.image" 
-          :alt="selectedProduct.name" 
-          class="product-image"
-          @error="handleImageError"
-        />
-        <div v-else class="placeholder-image">
-          No product selected
-        </div>
+    <!-- Only render content if selectedProduct exists -->
+    <div v-if="selectedProduct">
+      <div class="summary-header">
+        <h1>Configuration Summary</h1>
+        <p>Your custom product is ready!</p>
       </div>
       
-      <div class="configuration-details" v-if="selectedProduct">
-        <h2>{{ selectedProduct.name }}</h2>
-        <p>{{ selectedProduct.description }}</p>
+      <div class="summary-content">
+        <div class="product-showcase">
+          <img 
+            v-if="configuration.color"
+            :src="configuration.color.image" 
+            :alt="selectedProduct.name" 
+            class="product-image"
+            @error="handleImageError"
+          />
+          <img 
+            v-else
+            :src="selectedProduct.image" 
+            :alt="selectedProduct.name" 
+            class="product-image"
+            @error="handleImageError"
+          />
+        </div>
         
-        <div class="details-section">
-          <h3>Configuration Details</h3>
+        <div class="configuration-details">
+          <h2>{{ selectedProduct.name }}</h2>
+          <p>{{ selectedProduct.description }}</p>
           
-          <div class="detail-item" v-if="configuration.color">
-            <span class="detail-label">Color:</span>
-            <span class="detail-value">{{ configuration.color.name }}</span>
-          </div>
-          
-          <div class="detail-item" v-if="configuration.material">
-            <span class="detail-label">Material:</span>
-            <span class="detail-value">{{ configuration.material.name }}</span>
-          </div>
-          
-          <div class="detail-item">
-            <span class="detail-label">Features:</span>
-            <div class="features-list">
-              <span v-for="feature in configuration.features" :key="feature.id" class="feature-tag">
-                {{ feature.name }}
-              </span>
-              <span v-if="configuration.features.length === 0" class="no-features">
-                No additional features
-              </span>
+          <div class="details-section">
+            <h3>Configuration Details</h3>
+            
+            <div class="detail-item" v-if="configuration.color">
+              <span class="detail-label">Color:</span>
+              <span class="detail-value">{{ configuration.color.name }}</span>
+            </div>
+            
+            <div class="detail-item" v-if="configuration.material">
+              <span class="detail-label">Material:</span>
+              <span class="detail-value">{{ configuration.material.name }}</span>
+            </div>
+            
+            <div class="detail-item">
+              <span class="detail-label">Features:</span>
+              <div class="features-list">
+                <span v-for="feature in configuration.features" :key="feature.id" class="feature-tag">
+                  {{ feature.name }}
+                </span>
+                <span v-if="!configuration.features || configuration.features.length === 0" class="no-features">
+                  No additional features
+                </span>
+              </div>
             </div>
           </div>
-        </div>
-        
-        <div class="price-section">
-          <div class="price-item">
-            <span>Base Price:</span>
-            <span>${{ selectedProduct.basePrice.toFixed(2) }}</span>
+          
+          <div class="price-section">
+            <div class="price-item">
+              <span>Base Price:</span>
+              <span>${{ selectedProduct.basePrice.toFixed(2) }}</span>
+            </div>
+            
+            <div class="price-item">
+              <span>Options:</span>
+              <span>${{ (configuration.totalPrice - selectedProduct.basePrice).toFixed(2) }}</span>
+            </div>
+            
+            <div class="price-total">
+              <span>Total:</span>
+              <span>${{ configuration.totalPrice.toFixed(2) }}</span>
+            </div>
           </div>
           
-          <div class="price-item">
-            <span>Options:</span>
-            <span>${{ (configuration.totalPrice - selectedProduct.basePrice).toFixed(2) }}</span>
+          <div class="share-section">
+            <h3>Share Your Configuration</h3>
+            <div class="share-url">
+              <input type="text" :value="shareableUrl" readonly ref="shareInput" />
+              <button @click="copyShareUrl" class="copy-button">
+                {{ copyStatus }}
+              </button>
+            </div>
           </div>
           
-          <div class="price-total">
-            <span>Total:</span>
-            <span>${{ configuration.totalPrice.toFixed(2) }}</span>
+          <div class="action-buttons">
+            <base-button @click="modifyConfiguration" variant="outline">
+              Modify Configuration
+            </base-button>
+            <base-button @click="checkout">
+              Proceed to Checkout
+            </base-button>
           </div>
         </div>
-        
-        <div class="share-section">
-          <h3>Share Your Configuration</h3>
-          <div class="share-url">
-            <input type="text" :value="shareableUrl" readonly ref="shareInput" />
-            <button @click="copyShareUrl" class="copy-button">
-              {{ copyStatus }}
-            </button>
-          </div>
-        </div>
-        
-        <div class="action-buttons">
-          <base-button @click="modifyConfiguration" variant="outline">
-            Modify Configuration
-          </base-button>
-          <base-button @click="checkout">
-            Proceed to Checkout
-          </base-button>
-        </div>
       </div>
-      
-      <!-- Show this if no product is selected -->
-      <div class="no-configuration" v-else>
-        <h2>No Configuration Selected</h2>
-        <p>Please go back to the configurator to create a product configuration.</p>
-        <base-button @click="modifyConfiguration">
-          Go to Configurator
-        </base-button>
-      </div>
+    </div>
+    <div v-else class="no-configuration">
+      <h2>No Product Selected</h2>
+      <p>Please return to the configurator to select a product.</p>
+      <base-button @click="goToConfigurator">
+        Go to Configurator
+      </base-button>
     </div>
   </div>
 </template>
@@ -165,6 +162,10 @@ export default {
       router.push('/configurator');
     };
     
+    const goToConfigurator = () => {
+      router.push('/configurator');
+    };
+    
     const checkout = () => {
       // In a real app, this would redirect to checkout
       alert('Proceeding to checkout... (This would redirect to a checkout page in a real application)');
@@ -193,14 +194,14 @@ export default {
       productNameEl.style.marginBottom = '10px';
       container.appendChild(productNameEl);
       
-      // Create color name element
-      const colorNameEl = document.createElement('div');
-      colorNameEl.textContent = `Color: ${colorName}`;
-      colorNameEl.style.fontSize = '16px';
-      container.appendChild(colorNameEl);
-      
-      // Create a colored swatch to represent the color
+      // Create color name element if color exists
       if (configuration.value?.color) {
+        const colorNameEl = document.createElement('div');
+        colorNameEl.textContent = `Color: ${colorName}`;
+        colorNameEl.style.fontSize = '16px';
+        container.appendChild(colorNameEl);
+        
+        // Create a colored swatch to represent the color
         const colorMap = {
           'black': '#333333',
           'blue': '#4a6cf7',
@@ -228,6 +229,7 @@ export default {
       copyStatus,
       copyShareUrl,
       modifyConfiguration,
+      goToConfigurator,
       checkout,
       handleImageError
     };
@@ -280,12 +282,6 @@ export default {
   object-fit: contain;
 }
 
-.placeholder-image {
-  color: #999;
-  font-size: 18px;
-  text-align: center;
-}
-
 .configuration-details {
   display: flex;
   flex-direction: column;
@@ -293,15 +289,12 @@ export default {
 }
 
 .no-configuration {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
   text-align: center;
   background-color: #f5f5f7;
   border-radius: 8px;
   padding: 40px;
-  grid-column: span 2;
+  margin: 0 auto;
+  max-width: 600px;
 }
 
 .no-configuration h2 {

@@ -3,22 +3,41 @@
 // src/store/modules/configuration.js
 import { v4 as uuidv4 } from 'uuid';
 
+// Add default state with all required properties
+const defaultState = {
+  currentStep: 1,
+  totalSteps: 4,
+  selectedProduct: null,
+  configuration: {
+    id: null,
+    productId: null,
+    color: null,
+    material: null,
+    features: [],
+    totalPrice: 0
+  }
+};
+
 export default {
   namespaced: true,
   
   state: () => ({
-    currentStep: 1,
-    totalSteps: 4,
-    selectedProduct: null,
-    configuration: {
-      id: null,
-      productId: null,
-      color: null,
-      material: null,
-      features: [],
-      totalPrice: 0
-    }
+    ...defaultState
   }),
+  //
+ // state: () => ({
+   // currentStep: 1,
+  //  totalSteps: 4,
+   // selectedProduct: null,
+   // configuration: {
+     // id: null,
+     // productId: null,
+     // color: null,
+     // material: null,
+     // features: [],
+     // totalPrice: 0
+    }
+ // }),
   
   mutations: {
     SET_CURRENT_STEP(state, step) {
